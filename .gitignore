@@ -1,0 +1,6 @@
+.env
+*.sqlite3
+*.ico
+fondo.jpg
+__pycache__
+venv

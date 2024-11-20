@@ -1,0 +1,249 @@
+{% extends 'masterTemplate.html' %}
+{% block contenido %}
+{% load static %}
+<script src="{% static 'js/functions.js' %}"></script>
+{% if mensaje %}
+  <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        Swal.fire({
+          title: '{{ mensaje.title }}',
+          text: '{{ mensaje.text }}',
+          icon: '{{ mensaje.icon }}',
+          confirmButtonText: 'OK'
+        });
+    });
+  </script>
+{% endif %}
+<div class="p-3 bg-white rounded box-shadow">
+  <h1 class="alert alert-primary d-flex justify-content-between align-items-center">
+    <span>Cotizaciones de TI en <a href="https://espol-cl.monday.com/boards/7183961245">Monday.com</a></span>
+    <div class="dropdown">
+        <button class="btn btn-danger dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          {% if user.first_name %}  
+            {{ user.first_name }} {{ user.last_name }}
+          {% else %}
+            Sesión
+          {% endif %}
+        </button>
+        <ul class="dropdown-menu">
+            <li>
+                <a class="dropdown-item" href="#" id="logout-link">Cerrar Sesión</a>
+                <form id="logout-form" action="{% url 'logout' %}" method="POST" style="display: none;">
+                    {% csrf_token %}
+                </form>
+            </li>
+        </ul>
+    </div>
+  </h1>
+  <form>
+    <div class="form-group d-flex col-md-5">
+      <input type="text" class="form-control input-spacing" id="filtroBuscador" placeholder="Buscar...">
+    </div>
+  </form>
+  <hr>
+  <div class="table-responsive-sm">
+    <table class="table table-bordered table-striped">
+        <thead class="table-light">
+          <tr>
+            <th>Nombre</th>
+            <th>Estado</th>
+            <th>Correo</th>
+            <th>Fecha creación</th>
+            <th>Marca</th>
+            <th>Cantidad</th>
+            <th>Tipo</th>
+            <th>Proveedor</th>
+            <th>OC</th>
+            <th>Archivo OC</th>
+            <th>Cotización</th>
+            <th>Observación</th>
+            <th>Estado OC</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="tablaMonday">
+        {% for a in data.data.boards %}
+            {% for b in a.items_page.items %}
+                <tr>
+                    <th  id="{{ b.id }}">{{ b.name }}</th>
+                    {% for c in b.column_values %}
+                        {% if c.id == "status" %}
+                            {% if c.text == "En Recepción"%}
+                                <th style="background-color: rgb(51, 211, 145); color: white;" id="{{ c.id }}-{{ b.id }}">{{ c.text }}</th>
+                            {% elif c.text == "OC Enviada"%}
+                                <th style="background-color: rgb(253, 188, 100); color: white;" id="{{ c.id }}-{{ b.id }}">{{ c.text }}</th>
+                            {% elif c.text == "Sin Respuesta"%}
+                                <th style="background-color: rgb(232, 106, 125); color: white;" id="{{ c.id }}-{{ b.id }}">{{ c.text }}</th>
+                            {% elif c.text == "Sin Stock"%}
+                                <th style="background-color: rgb(255, 145, 145); color: white;" id="{{ c.id }}-{{ b.id }}">{{ c.text }}</th>
+                            {% elif c.text == "Anulada"%}
+                                <th style="background-color: rgb(153, 117, 108); color: white;" id="{{ c.id }}-{{ b.id }}">{{ c.text }}</th>
+                            {% elif c.text == "Cotizando"%}
+                                <th style="background-color: rgb(147, 111, 218); color: white;" id="{{ c.id }}-{{ b.id }}">{{ c.text }}</th>
+                            {% elif c.text == "Reemplazada"%}
+                                <th style="background-color: rgb(181, 125, 227); color: white;" id="{{ c.id }}-{{ b.id }}">{{ c.text }}</th>
+                            {% elif c.text == "Esperando OC Firmada"%}
+                                <th style="background-color: rgb(176, 220, 81); color: white;" id="{{ c.id }}-{{ b.id }}">{{ c.text }}</th>
+                            {% elif c.text == "Esperando OK TI"%}
+                                <th style="background-color: rgb(133, 214, 255); color: white;" id="{{ c.id }}-{{ b.id }}">{{ c.text }}</th>
+                            {% elif c.text == "Pendiente"%}
+                                <th style="background-color: rgb(121, 126, 147); color: white;" id="{{ c.id }}-{{ b.id }}">{{ c.text }}</th>
+                            {% elif c.text == "Listo"%}
+                                <th style="background-color: rgb(92, 92, 92); color: white;" id="{{ c.id }}-{{ b.id }}">{{ c.text }}</th>
+                            {% endif %}    
+                        {% elif c.id == "estado_1__1"%}
+                          {% if c.text == "Emitir OC"%}
+                            <th style="background-color: rgb(176, 220, 81); color: white;" id="{{ c.id }}-{{ b.id }}">{{ c.text }}</th>
+                          {% elif c.text == "Recepcionado"%}
+                            <th style="background-color: rgb(51, 211, 145); color: white;" id="{{ c.id }}-{{ b.id }}">{{ c.text }}</th>
+                          {% elif c.text == "Rechazado"%}
+                            <th style="background-color: rgb(232, 106, 125); color: white;" id="{{ c.id }}-{{ b.id }}">{{ c.text }}</th>
+                          {% elif c.text == "Enviar OC"%}
+                            <th style="background-color: rgb(133, 214, 255); color: white;" id="{{ c.id }}-{{ b.id }}">{{ c.text }}</th>
+                          {% elif c.text == "----"%}
+                            <th style="background-color: rgb(121, 126, 147); color: white;" id="{{ c.id }}-{{ b.id }}">{{ c.text }}</th>
+                          {% endif %}
+                        {% elif c.id == "date" %}
+                          <th style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="{{ c.id }}-{{ b.id }}">{{ c.text }}</th>
+                        {% elif c.id == "texto6__1" and c.text != "" %}
+                          <th id="{{ c.id }}-{{ b.id }}"><a href="{{ c.text }}">OC</a></th>
+                        {% elif c.id == "texto11__1" and c.text != "" %}
+                          <th id="{{ c.id }}-{{ b.id }}"><a href="{{ c.text }}">Cotizacion</a></th>
+                        {% else %}
+                          <th id="{{ c.id }}-{{ b.id }}">{{ c.text }}</th>
+                        {% endif %}
+                    {% endfor %}
+                    <th><button onClick="editarFila({{ b.id }})" type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-edit-cotizacion"><img src="{% static 'img/pencil-square.svg' %}" alt="Pencil Icon" width="16" height="16" style="filter: brightness(0) invert(1);"></button></th>
+                </tr>
+            {% endfor %}
+        {% endfor %}
+        </tbody>
+    </table>
+  </div>
+</div>
+
+
+<div class="modal fade" id="modal-edit-cotizacion" tabindex="-1" aria-labelledby="modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="titulo-modal">Editar Cotización</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="form-edit-cotizacion" method="POST">
+              {% csrf_token %}
+              <div class="mb-3">
+                <input type="hidden" name="id" id="id" value="">
+                <label for="nombre" class="col-form-label">Nombre del Producto:</label>
+                <input type="text" class="form-control" id="nombre" name="nombre" required="required" disabled>
+              </div>
+              <div class="mb-3">
+                <label for="estado" class="col-form-label">Estado:</label>
+                <select id="estado" name="estado" class="form-control" required="required">
+                    <option value="Listo">Listo</option>
+                    <option value="En Recepción">En Recepción</option>
+                    <option value="OC Enviada">OC Enviada</option>
+                    <option value="Sin Respuesta">Sin Respuesta</option>
+                    <option value="Sin Stock">Sin Stock</option>
+                    <option value="Anulada">Anulada</option>
+                    <option value="Cotizando">Cotizando</option>
+                    <option value="Reemplazada">Reemplazada</option>
+                    <option value="Esperando OC Firmada">Esperando OC Firmada</option>
+                    <option value="Esperando OK TI">Esperando OK TI</option>
+                    <option value="Pendiente">Pendiente</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="correo" class="col-form-label">Correo:</label>
+                <input type="email" class="form-control" id="correo" name="correo" required="required" disabled>
+              </div>
+              <div class="mb-3">
+                <label for="fecha" class="col-form-label">Fecha creación:</label>
+                <input type="date" class="form-control" id="fecha" name="fecha" required="required" disabled>
+              </div>
+              <div class="mb-3">
+                <label for="marca" class="col-form-label">Marca:</label>
+                <input type="text" class="form-control" id="marca" name="marca" required="required" disabled>
+              </div>
+              <div class="mb-3">
+                <label for="cantidad" class="col-form-label">Cantidad:</label>
+                <input type="number" class="form-control" id="cantidad" name="cantidad" required="required" disabled>
+              </div>
+              <div class="mb-3">
+                <label for="tipo" class="col-form-label">Tipo:</label>
+                <input type="text" class="form-control" id="tipo" name="tipo" required="required" disabled>
+              </div>
+              <div class="mb-3">
+                <label for="proveedor" class="col-form-label">Proveedor:</label>
+                <select class="form-control" id="proveedor" name="proveedor" required="required">
+                  <option value="----">----</option>
+                  <option value="INTCOMEX S.A">INTCOMEX S.A</option>
+                  <option value="ING. Y CONST. RICARDO RODRIGUEZ Y CIA.LTDA">ING. Y CONST. RICARDO RODRIGUEZ Y CIA.LTDA</option>
+                  <option value="ALMACEN TECNOLOGICO LIMITADA">ALMACEN TECNOLOGICO LIMITADA</option>
+                  <option value="MACTOTAL SPA">MACTOTAL SPA</option>
+                  <option value="SERVICIOS INTEGRALES RUANVI LIMITADA">SERVICIOS INTEGRALES RUANVI LIMITADA</option>
+                  <option value="CRISTIAN CERNA MEZA">CRISTIAN CERNA MEZA</option>
+                  <option value="TECSUD SPA">TECSUD SPA</option>
+                  <option value="SOUTHERN TECHNOLOGY GROUP LTDA.">SOUTHERN TECHNOLOGY GROUP LTDA.</option>
+                  <option value="INGRAM">INGRAM</option>
+                  <option value="Otros...">Otros...</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="oc" class="col-form-label">OC:</label>
+                <input type="text" class="form-control" id="oc" name="oc">
+              </div>
+              <div class="mb-3">
+                <label for="archivo-oc" class="col-form-label">Archivo OC:</label>
+                <input type="text" class="form-control" id="archivo-oc" name="archivo-oc" placeholder='URL de Drive'>
+              </div>
+              <div class="mb-3">
+                <label for="cotizacion" class="col-form-label">Cotización:</label>
+                <input type="text" class="form-control" id="cotizacion" name="cotizacion" placeholder='URL de Drive'>
+              </div>
+              <div class="mb-3">
+                <label for="observacion" class="col-form-label">Observación:</label>
+                <textarea class="form-control" id="observacion" name="observacion"></textarea>
+              </div>
+              <div class="mb-3">
+                <div class="mb-3">
+                  <label for="estado-oc" class="col-form-label">Estado OC:</label>
+                  <select id="estado-oc" name="estado-oc" class="form-control" required="required" disabled>
+                      <option value="Emitir OC">Emitir OC</option>
+                      <option value="Recepcionado">Recepcionado</option>
+                      <option value="Rechazado">Rechazado</option>
+                      <option value="Enviar OC">Enviar OC</option>
+                      <option value="----">----</option>
+                  </select>
+                </div>
+              </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+</div>
+<script>
+  // Script para cerrar sesión
+  document.getElementById('logout-link').addEventListener('click', function(event) {
+    event.preventDefault();  
+    document.getElementById('logout-form').submit(); 
+  });
+
+  // Para filtrar datos de la tabla
+  $(document).ready(function(){
+    $("#filtroBuscador").on("keyup", function() {
+      var value = $(this).val().toLowerCase();
+      $("#tablaMonday tr").filter(function() {
+        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+      });
+    });
+  });
+</script>
+{% endblock %}
+
+
